@@ -9,6 +9,10 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var cars = require('./routes/cars');
 
+var request = require('request');
+var xml2js = require('xml2js');
+var parseString = xml2js.parseString;
+
 var app = express();
 
 // view engine setup
@@ -26,6 +30,39 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', index);
 app.use('/users', users);
 app.use('/cars', cars);
+
+app.get('/cars/*', (req, res) => {
+  const queries = req.query;
+  // const apiKey = process.env.API_KEY;
+  const apiKey = 's9fen76swqufsd6ht4qacsnh';
+  const fullUrl = `http://api.hotwire.com/v1/search/car?apikey=${apiKey}&dest=${queries.dest}&startdate=${queries.startdate}&enddate=${queries.enddate}&pickuptime=${queries.pickuptime}&dropofftime=${queries.dropofftime}`;
+  request(
+    fullUrl,
+    (error, response, body) => {
+      if (!error && response.statusCode === 200) {
+        parseString(body, (err, result) => {
+          const cars = result.Hotwire.Result[0].CarResult.map((car) => {
+            const flattenedCar = {};
+            Object.keys(car).forEach((key) => {
+              if (Array.isArray(car[key]) && car[key].length < 2) {
+                flattenedCar[key] = car[key][0];
+              }
+            });
+            return flattenedCar;
+          });
+          res.json({ op: 'carssearch', success: true, cars });
+        });
+      } else {
+        res.json({
+          op: 'carssearch',
+          success: false,
+          errorMessage: `Sorry, Hotwire is currently unavailable.
+          Give us a minute and try again.`,
+        });
+      }
+    }
+  );
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
