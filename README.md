@@ -10,6 +10,24 @@
   ant.design
  
 ```
+## Start
+```
+  git clone
+  npm install
+  npm start
+  
+  the webpage will be opened by default at localhost:3000
+```
+
+To check front end code and start front end server:
+```
+  cd client
+  git pull
+  npm install
+  npm start
+  
+  the webpage will be opened by default at localhost:3001
+```
 ### Web
   Web is developed with React tech stack and all the packages listed above.
 
